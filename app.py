@@ -3,7 +3,7 @@ from flask import Flask, request
 import requests
 
 app = Flask(__name__)
-WHATSAPP_WHATSAPP_TOKEN = os.environ.get("WHATSAPP_WHATSAPP_TOKEN")
+WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 sesiones = {}
 
