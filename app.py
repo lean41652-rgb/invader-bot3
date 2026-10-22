@@ -116,6 +116,7 @@ def webhook():
     if 'messages' not in data:
         return "ok", 200
     msg = data['messages'][0]
+    print("DATA COMPLETA:", data)
     numero = msg['from']
     if msg['type'] == 'interactive':
         if 'list_reply' in msg['interactive']:
