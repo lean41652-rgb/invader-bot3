@@ -2,8 +2,8 @@ from flask import Flask, request
 import requests
 
 app = Flask(__name__)
-TOKEN = "EAAPvt6hPxlcBSzKMT4ghQ6ouH5tZBkLSRpfEgqdxlglot6ZAbZBMUbZA4koR2HeEzBTJqlQ5w1ZCMpawr5ldyKw7aeEYutPJOsjIndw1Ia2odc008wrjv9kElc0VJJO0lLOiQB6XbenjR5is4bYQfpaaZANAZBTNj3NtY7rKD9XIOLyZBhmld23rBKW9YFZBvp5rbn6slDZAy5cOSXdhXpEkw976P2ODXFURGBxWOJlPoMFZBHKvYtZCTwZCcymvMTxHE8QN0qkaQT8duriZAhnOsmvahsOVZCfeZBybmNareK9gHwZDZD"
-PHONE_ID = "1421015734426375"
+WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
+PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 sesiones = {}
 
 MENSAJE_FINAL = "✅ Perfecto. Registramos: *{ruta}*\n\nEn breve serás conectado con un técnico de Invader Hardware. Quedate en línea."
