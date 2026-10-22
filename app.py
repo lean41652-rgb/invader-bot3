@@ -3,17 +3,19 @@ from flask import Flask, request
 import requests
 
 app = Flask(__name__)
+
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
-sesiones = {}
 
+sesiones = {}
 MENSAJE_FINAL = "✅ Perfecto. Registramos: *{ruta}*\n\nEn breve serás conectado con un técnico de Invader Hardware. Quedate en línea."
 
 def enviar_texto(numero, texto):
     url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
     h = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
     data = {"messaging_product": "whatsapp", "to": numero, "text": {"body": texto}}
-    requests.post(url, headers=h, json=data)
+    r = requests.post(url, headers=h, json=data)
+    print(f"ENVIO TEXTO: {r.status_code} - {r.text}")
 
 def enviar_lista(numero, titulo, body, opciones):
     url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
@@ -33,7 +35,8 @@ def enviar_lista(numero, titulo, body, opciones):
             }
         }
     }
-    requests.post(url, headers=h, json=data)
+    r = requests.post(url, headers=h, json=data)
+    print(f"ENVIO LISTA: {r.status_code} - {r.text}")
 
 def enviar_botones(numero, texto, botones):
     url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
@@ -48,7 +51,8 @@ def enviar_botones(numero, texto, botones):
             "action": {"buttons": [{"type": "reply", "reply": b} for b in botones]}
         }
     }
-    requests.post(url, headers=h, json=data)
+    r = requests.post(url, headers=h, json=data)
+    print(f"ENVIO BOTONES: {r.status_code} - {r.text}")
 
 # --- MENÚS ---
 def menu_principal(numero):
@@ -73,11 +77,16 @@ def menu_computadoras(numero):
 
 def menu_fallas_pc(numero):
     opciones = [
-        {"id": "f_1", "title": "1. PC lento"}, {"id": "f_2", "title": "2. No da imagen"},
-        {"id": "f_3", "title": "3. No enciende"}, {"id": "f_4", "title": "4. Sin sistema"},
-        {"id": "f_5", "title": "5. Actualización"}, {"id": "f_6", "title": "6. Mantenimiento"},
-        {"id": "f_7", "title": "7. Cambio piezas"}, {"id": "f_8", "title": "8. Revisión técnica"},
-        {"id": "f_9", "title": "9. Bisagras"}, {"id": "f_10", "title": "10. Hardware"},
+        {"id": "f_1", "title": "1. PC lento"},
+        {"id": "f_2", "title": "2. No da imagen"},
+        {"id": "f_3", "title": "3. No enciende"},
+        {"id": "f_4", "title": "4. Sin sistema"},
+        {"id": "f_5", "title": "5. Actualización"},
+        {"id": "f_6", "title": "6. Mantenimiento"},
+        {"id": "f_7", "title": "7. Cambio piezas"},
+        {"id": "f_8", "title": "8. Revisión técnica"},
+        {"id": "f_9", "title": "9. Bisagras"},
+        {"id": "f_10", "title": "10. Hardware"},
     ]
     enviar_lista(numero, "Falla de PC", "Seleccioná la falla de tu computadora:", opciones)
 
@@ -89,10 +98,14 @@ def menu_celulares(numero):
 
 def menu_fallas_cel(numero):
     opciones = [
-        {"id": "c_1", "title": "1. No enciende"}, {"id": "c_2", "title": "2. Pantalla rota"},
-        {"id": "c_3", "title": "3. No carga"}, {"id": "c_4", "title": "4. Sin sonido"},
-        {"id": "c_5", "title": "5. No conecta WiFi"}, {"id": "c_6", "title": "6. Lento"},
-        {"id": "c_7", "title": "7. Reinicia solo"}, {"id": "c_8", "title": "8. No se apaga"},
+        {"id": "c_1", "title": "1. No enciende"},
+        {"id": "c_2", "title": "2. Pantalla rota"},
+        {"id": "c_3", "title": "3. No carga"},
+        {"id": "c_4", "title": "4. Sin sonido"},
+        {"id": "c_5", "title": "5. No conecta WiFi"},
+        {"id": "c_6", "title": "6. Lento"},
+        {"id": "c_7", "title": "7. Reinicia solo"},
+        {"id": "c_8", "title": "8. No se apaga"},
     ]
     enviar_lista(numero, "Falla de Celular", "Seleccioná la falla de tu equipo:", opciones)
 
@@ -100,11 +113,10 @@ def menu_fallas_cel(numero):
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json['entry'][0]['changes'][0]['value']
-    if 'messages' not in data: return "ok", 200
-    
+    if 'messages' not in data:
+        return "ok", 200
     msg = data['messages'][0]
     numero = msg['from']
-    
     if msg['type'] == 'interactive':
         if 'list_reply' in msg['interactive']:
             texto = msg['interactive']['list_reply']['id']
@@ -112,14 +124,15 @@ def webhook():
             texto = msg['interactive']['button_reply']['id']
     else:
         texto = msg['text']['body'].strip()
+    
+    print(f"MENSAJE RECIBIDO: {texto} de {numero}")
 
-    # LOGICA
     if texto == "0" or texto.lower() == "menu":
         sesiones[numero] = []
         menu_principal(numero)
         return "ok", 200
-
-    if not sesiones.get(numero): # Principal
+    
+    if not sesiones.get(numero):
         if texto == "1":
             sesiones[numero] = ["1"]
             menu_computadoras(numero)
@@ -129,35 +142,30 @@ def webhook():
         elif texto in ["3","4","5","6","7","8"]:
             sesiones[numero] = [texto]
             enviar_texto(numero, "Anotado. Elegí la falla específica:")
-            menu_fallas_pc(numero) # ejemplo
+            menu_fallas_pc(numero)
         elif texto == "9":
             enviar_texto(numero, MENSAJE_FINAL.format(ruta="Hablar con técnico directo"))
             sesiones[numero] = []
         else:
             menu_principal(numero)
-    
-    elif sesiones[numero] == ["1"]: # eligió compu
-        sesiones[numero] = ["1", texto] # ["1", "1_1"]
+    elif sesiones[numero] == ["1"]:
+        sesiones[numero] = ["1", texto]
         menu_fallas_pc(numero)
-
-    elif sesiones[numero] == ["2"]: # eligió celular
+    elif sesiones[numero] == ["2"]:
         sesiones[numero] = ["2", texto]
         menu_fallas_cel(numero)
-
-    else: # Ya es una falla final
+    else:
         enviar_texto(numero, MENSAJE_FINAL.format(ruta=f"Opción {texto}"))
         sesiones[numero] = []
         enviar_texto(numero, "Si querés volver a iniciar, escribí *MENU*")
-
     return "ok", 200
 
 @app.route('/webhook', methods=['GET'])
 def verify():
-    if request.args.get("hub.verify_WHATSAPP_TOKEN") == "invader123":
+    if request.args.get("hub.verify_token") == "invader123":
         return request.args.get("hub.challenge")
     return "error", 403
 
-import os
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
