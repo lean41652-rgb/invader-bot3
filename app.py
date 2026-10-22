@@ -3,21 +3,21 @@ from flask import Flask, request
 import requests
 
 app = Flask(__name__)
-WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
+WHATSAPP_WHATSAPP_TOKEN = os.environ.get("WHATSAPP_WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 sesiones = {}
 
 MENSAJE_FINAL = "✅ Perfecto. Registramos: *{ruta}*\n\nEn breve serás conectado con un técnico de Invader Hardware. Quedate en línea."
 
 def enviar_texto(numero, texto):
-    url = f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages"
-    h = {"Authorization": f"Bearer {TOKEN}"}
+    url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
+    h = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
     data = {"messaging_product": "whatsapp", "to": numero, "text": {"body": texto}}
     requests.post(url, headers=h, json=data)
 
 def enviar_lista(numero, titulo, body, opciones):
-    url = f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages"
-    h = {"Authorization": f"Bearer {TOKEN}"}
+    url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
+    h = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
     data = {
         "messaging_product": "whatsapp",
         "to": numero,
@@ -36,8 +36,8 @@ def enviar_lista(numero, titulo, body, opciones):
     requests.post(url, headers=h, json=data)
 
 def enviar_botones(numero, texto, botones):
-    url = f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages"
-    h = {"Authorization": f"Bearer {TOKEN}"}
+    url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
+    h = {"Authorization": f"Bearer {WHATSAPP_TOKEN}"}
     data = {
         "messaging_product": "whatsapp",
         "to": numero,
@@ -153,7 +153,7 @@ def webhook():
 
 @app.route('/webhook', methods=['GET'])
 def verify():
-    if request.args.get("hub.verify_token") == "invader123":
+    if request.args.get("hub.verify_WHATSAPP_TOKEN") == "invader123":
         return request.args.get("hub.challenge")
     return "error", 403
 
